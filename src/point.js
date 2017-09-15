@@ -17,7 +17,7 @@ define( function(){
 
 	Point.prototype.render = function(ctx){
 		ctx.fillStyle = 'rgb(200, 0, 0)';
-		ctx.fillRect( this.x - 2, this.y - 2, 4, 4);
+		ctx.fillRect( this.x - 3, this.y - 3, 7, 7);
 	}
 
 

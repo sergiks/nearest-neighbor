@@ -19,17 +19,20 @@ requirejs(
 				div			: document.createElement('div')
 				, samples	: []
 				, window	: 20
+				, count		: 0
 			}
 			, points = new Points()
 			, i
 			, p
-			, radius = 20		// min distance to create a link, in px
-			, getRnd = function(){ return Math.floor( canvas.width * Math.random()); }
+			, radius = 60		// min distance to create a link, in px
+			, getRnd = function( max ){ return Math.floor( max * Math.random()); }
 		;
-	
-	
+		
+		
 		// setup canvas
-		canvas.width = canvas.height = 300;
+		canvas.width = 1280;
+		canvas.height = 720;
+
 		divCanvas.appendChild(canvas);
 		divCanvas.className = "centered";
 		document.body.appendChild(divCanvas);
@@ -41,9 +44,9 @@ requirejs(
 	
 		// create points and links
 		for( i = 0; i < 200; i++) {
-			p = new Point( getRnd(), getRnd());
+			p = new Point( getRnd(canvas.width), getRnd(canvas.height));
 			
-			p.setDirection( getRnd(), getRnd());
+			p.setDirection( getRnd(canvas.width), getRnd(canvas.height));
 	
 			p.setSpeed( 10 + 40 * Math.random());
 			p.render(ctx);
@@ -53,11 +56,25 @@ requirejs(
 		console.log(points.length, "points created.");
 	
 	
+		// record video
+		var capturer = new CCapture({
+			format: 'png'
+			, framerate: 30
+			, timeLimit: 60
+			, verbose: false
+			, autoSaveTime: 10
+		});
+		capturer.start();
+	
+	
+
 		function makeFrame( timestamp) {
 			var i, j, Pi, Pj, px, dx, dy, dy2, selection, r2 = radius * radius;
 			
 			// clear canvas
-			ctx.clearRect( 0, 0, canvas.width, canvas.height);
+			//ctx.clearRect( 0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = "black";
+			ctx.fillRect( 0, 0, canvas.width, canvas.height);
 			
 			// update all points
 			for( i = 0; i < points.length; i++) {
@@ -67,8 +84,8 @@ requirejs(
 				// fix to boundaries
 				if( Pi.x < 0) Pi.x *= -1, Pi.v.x *= -1;
 				if( Pi.y < 0) Pi.y *= -1, Pi.v.y *= -1;
-				if( Pi.x > 300) Pi.x = 600 - Pi.x, Pi.v.x *= -1;
-				if( Pi.y > 300) Pi.y = 600 - Pi.y, Pi.v.y *= -1;
+				if( Pi.x > canvas.width) Pi.x = 2 * canvas.width - Pi.x, Pi.v.x *= -1;
+				if( Pi.y > canvas.height) Pi.y = 2 * canvas.height - Pi.y, Pi.v.y *= -1;
 
 				Pi.render(ctx);
 			}
@@ -96,11 +113,15 @@ requirejs(
 				fps.div.innerText = ( fps.window * 1000 / (fps.samples[fps.window] - fps.samples[0])).toFixed(2) + " fps";
 				fps.samples = fps.samples.slice(-1);
 			}
+			
+
+			capturer.capture( canvas );
+
 			window.requestAnimationFrame( makeFrame );
 		}
 		
 		// go
-		window.requestAnimationFrame( makeFrame );
+		makeFrame();
 	
 	}
 );
